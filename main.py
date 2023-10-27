@@ -261,7 +261,6 @@ if __name__ == '__main__':
 
         # shortageFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + familyCode + "_"+ runType + ".csv")
         # poAllocFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-
         createDir(familyCode,timeStr)
         prepareItemDC(familyCode)
         prepareForecast(familyCode)
