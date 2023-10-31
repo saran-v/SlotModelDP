@@ -265,6 +265,7 @@ if __name__ == '__main__':
         prepareItemDC(familyCode)
         prepareForecast(familyCode)
         numRec = preparePO(familyCode)
+        print(familyCode, " Number of Open Pos: ",numRec)
         if numRec > 0:
             fCode = JavaScipRun(familyCode, runType, timeStr)
             shortageFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + fCode + "_"+ runType + ".csv")
