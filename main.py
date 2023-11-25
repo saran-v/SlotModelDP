@@ -10,6 +10,9 @@ import pyodbc
 import sys
 from datetime import datetime, timedelta
 
+# sys.stdout = open('out.log', 'w')
+# sys.stderr = sys.stdout
+
 conn = pyodbc.connect('Driver={SQL Server};'
                       'Server=SQLSPC19-1;'
                       'Database=SupplyChain;'
@@ -30,7 +33,8 @@ def createDir(familyCode, timeStr):
     else:
         print("Directory already exists")
 
-    os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs")
+    # os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs")
+    os.chdir(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs")
 
     if not os.path.exists(timeStr):
         try:
@@ -51,20 +55,6 @@ def prepareItemDC(familyCode):
     df['Vendor ID'] = df['Vendor ID'].fillna(0)
     df['Vendor ID'] = df['Vendor ID'].astype(int)
     df['Vendor ID'] = df['Vendor ID'].astype(str)
-
-    # df.to_csv(r"D:/Scripts/OPT/SlotModel/Opt/item_1.csv", index=False)
-    #
-    # df = df[df['Family_Code_Desc'].notnull()] # skip if null family code
-    # df.to_csv(r"D:/Scripts/OPT/SlotModel/Opt/item_2.csv", index=False)
-    #
-    # df = df[(df['Forecast Flag'] == 'Y')]  # filter by forecast flag
-    # df.to_csv(r"D:/Scripts/OPT/SlotModel/Opt/item_3.csv", index=False)
-    #
-    # df = df[(df['Replenish Flag'] == 'Y')]  # filter by replenish flag
-    # df.to_csv(r"D:/Scripts/OPT/SlotModel/Opt/item_4.csv", index=False)
-    #
-    # df = df[(df['Global Drop Status'] == 'N')]  # filter by global drop status
-    # df.to_csv(r"D:/Scripts/OPT/SlotModel/Opt/item_5.csv", index=False)
 
     df = df[['Article', 'Article Description', 'Vendor ID', 'Vendor Name', 'Family Code - Key', 'site','Family_Code_Desc','Weeks Of Supply For SS','Unrestricted Stock','STO Inbound Qty','confirmedQty',
              'STO Outbound Qty','Volume','DSX LeadTime','Avg Fcst Units','Avg Fcst Cost','MaxCubesPerContainer','Incoterm Group','Minor_Code','Minor_Code_Description','Origin Country','Major Code Description']]
@@ -144,15 +134,18 @@ def preparePO(familyCode):
 
 def  JavaScipRun(familyCode, runType, timeStr):
 
-    shutil.copyfile("S:\Merchandising_Shared\Supply Chain Automation\DSX Attributes & Transit Data\DSX Attributes.csv", "D:\Scripts\OPT\SlotModel\Opt\DSX Attributes.csv")
-    shutil.copyfile("S:\Merchandising_Shared\Supply Chain Automation\DSX Attributes & Transit Data\Transit Times by Port of Origin.csv", "D:\Scripts\OPT\SlotModel\Opt\Transit Times by Port of Origin.csv")
+    # shutil.copyfile("S:\Merchandising_Shared\Supply Chain Automation\DSX Attributes & Transit Data\DSX Attributes.csv", "D:\Scripts\OPT\SlotModel\Opt\DSX Attributes.csv")
+    # shutil.copyfile("S:\Merchandising_Shared\Supply Chain Automation\DSX Attributes & Transit Data\Transit Times by Port of Origin.csv", "D:\Scripts\OPT\SlotModel\Opt\Transit Times by Port of Origin.csv")
+
+    shutil.copyfile(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\DSX Attributes & Transit Data\DSX Attributes.csv", "D:\Scripts\OPT\SlotModel\Opt\DSX Attributes.csv")
+    shutil.copyfile(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\DSX Attributes & Transit Data\Transit Times by Port of Origin.csv", "D:\Scripts\OPT\SlotModel\Opt\Transit Times by Port of Origin.csv")
 
     os.chdir(r"D:\Scripts\OPT\SlotModel\Opt")
 
     if os.path.isfile("result_java.csv"):
         os.remove("result_java.csv")
 
-    _base_cmd = ['java', '-classpath',
+    _base_cmd = ['D:\\amazon-corretto-8.392.08.1-windows-x64-jdk\jdk1.8.0_392\\bin\java', '-classpath',
                  'SlotModelR.jar;jna-5.11.0.jar;ortools-win32-x86-64-9.5.2237.jar;protobuf-java-3.21.5.jar;ortools-java-9.5.2237.jar',
                  'com.optimizer.Optimizer',runType]  # works
 
@@ -165,13 +158,21 @@ def  JavaScipRun(familyCode, runType, timeStr):
     if '/' in familyCode:
         familyCode = familyCode.replace('/', '_')
 
-    shutil.copyfile("POAllocations_out.csv", 'S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\' + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-    shutil.copyfile("Inv_OH_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_OH_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-    shutil.copyfile("Inv_Alloc_Summary_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_Alloc_Summary_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-    shutil.copyfile("Inv_BackOrder_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_BackOrder_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-    shutil.copyfile("Inv_Alloc_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_Alloc_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-    shutil.copyfile("POUtilData_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POUtilData_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-    shutil.copyfile("Shortage_Analysis_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    # shutil.copyfile("POAllocations_out.csv", 'S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\' + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    # shutil.copyfile("Inv_OH_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_OH_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    # shutil.copyfile("Inv_Alloc_Summary_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_Alloc_Summary_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    # shutil.copyfile("Inv_BackOrder_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_BackOrder_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    # shutil.copyfile("Inv_Alloc_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_Alloc_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    # shutil.copyfile("POUtilData_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POUtilData_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    # shutil.copyfile("Shortage_Analysis_out.csv", "S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+
+    shutil.copyfile("POAllocations_out.csv", r'\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\' + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    shutil.copyfile("Inv_OH_out.csv", r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_OH_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    shutil.copyfile("Inv_Alloc_Summary_out.csv", r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_Alloc_Summary_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    shutil.copyfile("Inv_BackOrder_out.csv", r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_BackOrder_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    shutil.copyfile("Inv_Alloc_out.csv", r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Inv_Alloc_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    shutil.copyfile("POUtilData_out.csv", r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POUtilData_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+    shutil.copyfile("Shortage_Analysis_out.csv", r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + familyCode + "_"+ runType + ".csv")
 
     os.chdir(r"D:\Scripts\OPT\SlotModel\Opt")
 
@@ -188,7 +189,8 @@ def  JavaScipRun(familyCode, runType, timeStr):
 def readFamilyCodeList():
     familyCodeList = []
     runTypeList = []
-    os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
+    # os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
+    os.chdir(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
     shutil.copyfile('config.csv', r"D:\Scripts\OPT\SlotModel\Opt\config.csv")
 
     if not os.path.exists('familyCodeList.csv'):
@@ -232,7 +234,8 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
+    # os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
+    os.chdir(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
     if not os.path.exists('familyCodeList.csv'):
         exit()
 
@@ -241,14 +244,15 @@ if __name__ == '__main__':
     dt = datetime.now()
     str_date_time = dt.strftime("%m_%d_%H_%M")
 
-    os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
+    # os.chdir(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
+    os.chdir(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Inputs")
 
     if os.path.exists('familyCodeList.csv'):
         os.rename('familyCodeList.csv', 'familyCodeList_' + str_date_time + '.csv')
 
     now = datetime.now()
     timeStr = now.strftime("%Y") + '_' + now.strftime("%m") + '_' + now.strftime("%d") + '_' + now.strftime("%H_%M_")
-    # timeStr = '2023_10_18_15_45_'
+    # timeStr = '2023_11_13_15_28_'
 
     shortageFileList = []
     poAllocFileList = []
@@ -259,8 +263,9 @@ if __name__ == '__main__':
         if '/' in familyCode:
             familyCode = familyCode.replace('/', '_')
 
-        # shortageFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + familyCode + "_"+ runType + ".csv")
-        # poAllocFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+        # shortageFileList.append(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+        # poAllocFileList.append(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + familyCode + "_"+ runType + ".csv")
+
         createDir(familyCode,timeStr)
         prepareItemDC(familyCode)
         prepareForecast(familyCode)
@@ -268,28 +273,35 @@ if __name__ == '__main__':
         print(familyCode, " Number of Open Pos: ",numRec)
         if numRec > 0:
             fCode = JavaScipRun(familyCode, runType, timeStr)
-            shortageFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + fCode + "_"+ runType + ".csv")
-            poAllocFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + fCode + "_"+ runType + ".csv")
+            # shortageFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + fCode + "_"+ runType + ".csv")
+            # poAllocFileList.append("S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + fCode + "_"+ runType + ".csv")
+            shortageFileList.append(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "Shortage_Analysis_out_" + timeStr + fCode + "_"+ runType + ".csv")
+            poAllocFileList.append(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "_aux\\" + "POAllocations_out_" + timeStr + fCode + "_"+ runType + ".csv")
 
+    print(" ShortageFileList: ",shortageFileList)
     df_consol = pd.DataFrame()
     for shortFile in shortageFileList:
+        print(" ShortFile: ", shortFile)
         df = pd.read_csv(shortFile)
         df_consol = pd.concat([df_consol, df], axis=0)
 
-    df_consol.to_csv(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "\\" + "Shortage_Analysis_Summary_" + timeStr + ".csv", index=False)
+    # df_consol.to_csv(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "\\" + "Shortage_Analysis_Summary_" + timeStr + ".csv", index=False)
+    df_consol.to_csv(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "\\" + "Shortage_Analysis_Summary_" + timeStr + ".csv", index=False)
 
     df_consol = pd.DataFrame()
     for poFile in poAllocFileList:
         df = pd.read_csv(poFile)
         df_consol = pd.concat([df_consol, df], axis=0)
 
-    df_consol.to_csv(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "\\" + "POAllocations_Summary_" + timeStr + ".csv", index=False)
+    # df_consol.to_csv(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "\\" + "POAllocations_Summary_" + timeStr + ".csv", index=False)
+    df_consol.to_csv(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + timeStr + "\\" + "POAllocations_Summary_" + timeStr + ".csv", index=False)
     plannerList = df_consol['Planner'].unique()
 
     for planner in plannerList:
         df_planner = df_consol.loc[df_consol['Planner'] == planner]
         print('planner', planner)
-        df_planner.to_csv(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + str(timeStr) + "\\" + "POAllocations_Summary_" + str(planner) + "_" + str(timeStr) + ".csv", index=False)
+        # df_planner.to_csv(r"S:\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + str(timeStr) + "\\" + "POAllocations_Summary_" + str(planner) + "_" + str(timeStr) + ".csv", index=False)
+        df_planner.to_csv(r"\\File-Share\Bobs_Share\Merchandising_Shared\Supply Chain Automation\ReplanOpt\Outputs\\" + str(timeStr) + "\\" + "POAllocations_Summary_" + str(planner) + "_" + str(timeStr) + ".csv", index=False)
 
     end = time.time()
     time_elapsed = end - start
